@@ -7,26 +7,28 @@ Sparkify is a startup wants to analyze the songs they have been collecting and k
 
 ```
 .
+├── assets
+│   └── images
+│       ├── staging_tables.svg
+│       └── tables.svg
 ├── create_tables.py
 ├── data
 │   └── data
 │       ├── log_data (user log folder)
 │       │   ├── 2018-11-01-events.json
-│       │   ├── ....
-│       │
+│       │   ├── .....
 │       └── song_data (folder containing songs and artists data)
 │           ├── TRAAAAW128F429D538.json
-│           ├── ....
+│           ├── .....
 ├── dwh.cfg (config contains settings for redshift cluster)
 ├── etl.py
-├── __pycache__
-│   └── sql_queries.cpython-39.pyc
 ├── README.md
+├── requirements.txt
 ├── sql_queries.py
 ├── staging_events_jsonpath.json
 └── tree.txt
 
-5 directories, 109 files
+7 directories, 112 files
 
 ```
 
