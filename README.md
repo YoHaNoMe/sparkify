@@ -71,7 +71,7 @@ This will install all of the required packages within the `requirements.txt` fil
     - In _Choose a use case_ section select **Redshift**.
     - In _Select your case_ section select **Redshift Customizable**.
     - Click Next
-    - In _Attach permissions policies_ search for **AmazonS3ReadOnlyAccess** and select it.
+    - In _Attach permissions policies_ section search for **AmazonS3ReadOnlyAccess** and select it.
     - Click Next
     - Review and Create.
 
@@ -79,7 +79,7 @@ This will install all of the required packages within the `requirements.txt` fil
 
 4. Create S3 Buckets, please refer to this [link](https://docs.aws.amazon.com/AmazonS3/latest/userguide/create-bucket-overview.html)
 
-5. Upload `log_data` and `song_data` in _data_ folder, each in a separate bucket.
+5. Upload `log_data` and `song_data` in _data_ folder, each one in a separate bucket.
 
 6. Upload `staging_events_jsonpath.json` in a separate bucket also.
 
@@ -98,6 +98,8 @@ When you finish ***delete*** Redshift Cluster and buckets you have created to av
 ### Fact Tables
 
 ##### Songplays
+
+**Notice**: We used _DISTKEY_ on `artist_id` to enhace the performance if we want to join it with _artist_ table.
 
 Create Query
 
@@ -145,6 +147,8 @@ INSERT INTO songplays (
 
 ##### 1- Users
 
+**Notice**: We used _diststyle all_ on the table, because the table is small. So by using that we will enhance the performance if we join the table with any other one.
+
 Create Query
 ```
 CREATE TABLE IF NOT EXISTS users (
@@ -175,6 +179,8 @@ INSERT INTO users(
 ```
 
 ##### 2- Songs
+
+**Notice**: We used _DISTKEY_ on `song_id` to enhace the performance if we want to join it with _songplays_ table. We also used _SORTKEY_ in `year` to enhace the performance if we want to _order by_ the year.
 
 Create Query
 
@@ -207,6 +213,8 @@ INSERT INTO songs(
 
 ##### 3- Artists
 
+**Notice**: We used _DISTKEY_ on `artist_id` to enhace the performance if we want to join it with _songplay_ table.
+
 Create Query
 
 ```
@@ -237,6 +245,8 @@ INSERT INTO artists(
 ```
 
 ##### 4- Time
+
+**Notice**: We used _SORTKEY_ on `start_time` to enhace the performance if we want to _order by_ timestamp.
 
 Create Query
 
@@ -279,7 +289,9 @@ INSERT INTO time(
 
 ### Staging Tables
 
-##### Staging Events
+##### 1- Staging Events
+
+**Notice**: We used _DISTKEY_ on `artist` to enhace the performance if we want to join it with _staging songs_ table. We also used _SORTKEY_ on `ts` to enhance the performance if we want to _order by_ ts (timestamp).
 
 Create Query
 
@@ -306,6 +318,8 @@ CREATE TABLE IF NOT EXISTS staging_events(
     user_id INTEGER);
 ```
 
+**Notice**: We used here `LOG_JSONPATH` because the fields in the json have _CamalCase_ and in the table we are using _SnakeCase_. So we used it to map the fields to the corresponding column names.
+
 Insert Query
 
 ```
@@ -316,7 +330,9 @@ region {};
 """).format(LOG_DATA, ARN, LOG_JSONPATH, REGION)
 ```
 
-##### Staging Songs
+##### 2- Staging Songs
+
+**Notice**: We used _DISTKEY_ on `artist_name` to enhace the performance if we want to join it with _staging events_ table. We also used _SORTKEY_ on `duration` to enhance the performance if we want to _order by_ duration.
 
 Create Query
 
