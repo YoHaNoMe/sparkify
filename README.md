@@ -65,9 +65,7 @@ This will install all of the required packages within the `requirements.txt` fil
 
 1. First you have to create an AWS account, please refer to this [link](https://aws.amazon.com/premiumsupport/knowledge-center/create-and-activate-aws-account/).
 
-2. You have to create [Redshift Cluster](https://aws.amazon.com/redshift/) .
-
-3. Create an IAM Role, please refer to this [link](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-user.html).
+2. Create an IAM Role, please refer to this [link](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-user.html).
     - In _Choose a use case_ section select **Redshift**.
     - In _Select your case_ section select **Redshift Customizable**.
     - Click Next
@@ -75,18 +73,22 @@ This will install all of the required packages within the `requirements.txt` fil
     - Click Next
     - Review and Create.
 
-3. Create S3 Buckets, please refer to this [link](https://docs.aws.amazon.com/AmazonS3/latest/userguide/create-bucket-overview.html)
+3. You have to create [Redshift Cluster](https://aws.amazon.com/redshift/) .
 
-4. Upload `log_data` and `song_data` in _data_ folder, each one in a separate bucket.
+4. Create S3 Buckets, please refer to this [link](https://docs.aws.amazon.com/AmazonS3/latest/userguide/create-bucket-overview.html)
 
-5. Upload `staging_events_jsonpath.json` in a separate bucket also.
+5. Upload `log_data` and `song_data` in _data_ folder, each one in a separate bucket.
 
-6. Fill in `dwh.cfg` fields.
+6. Upload `staging_events_jsonpath.json` in a separate bucket also.
 
-7. Run `create_tables.py`.
+7. Fill in `dwh.cfg` fields.
+    - Please follow the instruction you will found in the file. **only replace** `<YOUR_BUCKET_NAME>` with your bucket name.
+    - Please make sure that `LOG_DATA` and `SONG_DATA` aren't like that: `s3://bucket_name/log-data | s3://bucket_name/song-data`. If it like that **remove** `log-data/` and `song-data` part.
+
+8. Run `create_tables.py`.
     - `python create_tables.py`
 
-8. Run `etl.py`.
+9. Run `etl.py`.
     - `python etl.py`
 
 ### Finally 
