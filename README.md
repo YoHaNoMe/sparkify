@@ -32,71 +32,19 @@ Sparkify is a startup wants to analyze the songs they have been collecting and k
 
 ## Tables
 
-The design of the database schema will be based on [***Star Schema***](https://en.wikipedia.org/wiki/Star_schema), So we will have, in this project, **one** fact table and **four** dimension tables.
+The design of the database schema will be based on [***Star Schema***](https://en.wikipedia.org/wiki/Star_schema), So we will have, in this project, **one** fact table and **four** dimension tables. Also as we are going to use [***Redshift***](https://aws.amazon.com/redshift/) we will have two staging tables ***staging_events*** and ***staging_songs***.
 
-### Fact Tables
+### Tables
 
-##### Songplays
+![Tables Schema](/assets/images/tables.svg)
 
-the table `songplays` will have these columns:
-- songplay_id
-- start_time
-- user_id
-- level
-- song_id
-- artist_id
-- session_id
-- location
-- user_agent
+### Staging Tables
 
-### Dimension Tables
-
-##### 1- Users
-
-the table `users` will have these columns:
-- user_id
-- first_name
-- last_name
-- gender
-- level
-
-##### 2- Songs
-
-the table `songs` will have these columns:
-- song_id
-- title
-- artist_id
-- year
-- duration
-
-##### 3- Artists
-
-the table `artists` will have these columns:
-- artist_id
-- name
-- location
-- latitude
-- longitude
-
-##### 4- Time
-
-the table `time` will have these columns:
-- id
-- start_time
-- hour
-- day
-- week
-- month
-- year
-- weekday
+![Tables Schema](/assets/images/staging_tables.svg)
 
 ## Getting Started
 
 ### Installing Dependencies
-
-#### PostgreSQL
-
-Make sure you have `PostgreSQL` Installed. [Download PostgreSQL](https://www.postgresql.org/download/)
 
 #### Python
 Follow instructions to install the latest version of python for your platform in the [Python Docs](https://docs.python.org/3/using/unix.html#getting-and-installing-the-latest-version-of-python)
@@ -113,34 +61,35 @@ This will install all of the required packages within the `requirements.txt` fil
 
 ### Running Application
 
-1.  First you have to create a database with any name except ***sparkifydb***, ex. `testdb` .
+1. First you have to create an AWS account, please refer to this [link](https://aws.amazon.com/premiumsupport/knowledge-center/create-and-activate-aws-account/).
 
-2. Run `create_tables` file to  the tables mentioned [above](https://github.com/YoHaNoMe/sparkify-udacity#tables). You have to pass your **username** , **password** and **database** you have created. the *username* and *password* is what you have created in installing [PostgreSQL Step](https://github.com/YoHaNoMe/sparkify-udacity#postgresql).
+2. You have to create [Redshift Cluster](https://aws.amazon.com/redshift/) .
 
-```
-python create_tables.py username password
-```
+3. Create an IAM Role, please refer to this [link](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-user.html).
+    - In _Choose a use case_ section select **Redshift**.
+    - In _Select your case_ section select **Redshift Customizable**.
+    - Click Next
+    - In _Attach permissions policies_ search for **AmazonS3ReadOnlyAccess** and select it.
+    - Click Next
+    - Review and Create.
 
-3. Run `etl.py` this file will extract data from json files and insert it into the tables. Again  you have to pass your **username** , **password** and **database**. the *username* and *password* is what you have created in installing [PostgreSQL Step](https://github.com/YoHaNoMe/sparkify-udacity#postgresql).
+3. Fill in `dwh.cfg` fields.
 
-```
-python etl.py username password
-```
+4. Create S3 Buckets, please refer to this [link](https://docs.aws.amazon.com/AmazonS3/latest/userguide/create-bucket-overview.html)
 
-***Important Notes***: 
+5. Upload `log_data` and `song_data` in _data_ folder, each in a separate bucket.
 
-- If you want to reset the tables (clear all the data), re-run the second step.
-- To run any of `etl.ipynb` or `test.ipynb` you have to run **JupyterLab**. Please visit this [link](https://jupyter.org/install#run-jupyterlab)
-- If you run any of `etl.ipynb` or `test.ipynb` you have to **Reset The Kernel**. Please visit this [link](https://support.labs.cognitiveclass.ai/knowledgebase/articles/857388-how-to-restart-the-jupyter-kernel#:~:text=You%20can%20restart%20your%20Jupyter,occurs%20try%20refreshing%20your%20browser.) if you don't know how to reset it.
+6. Upload `staging_events_jsonpath.json` in a separate bucket also.
+
+7. Run `create_tables.py`.
+    - `python create_tables.py`
+
+8. Run `etl.py`.
+    - `python etl.py`
 
 ### Finally 
 
-When you finish remove `sparkifydb` and `your_database_name`  by:
-
-```
-DROP DATABASE IF EXISTS sparkifydb
-DROP DATABASE IF EXISTS your_database_name
-```
+When you finish ***delete*** Redshift Cluster and buckets you have created to avoid charging.
 
 ## Tables In Details
 
@@ -152,26 +101,15 @@ Create Query
 
 ```
 CREATE TABLE IF NOT EXISTS songplays (
-    songplay_id SERIAL PRIMARY KEY,
-    start_time float NOT NULL,
-    user_id int,
-    level varchar,
-    song_id varchar,
-    artist_id varchar,
-    session_id int,
-    location varchar,
-    user_agent varchar,
-
-    CONSTRAINT fk_songs
-        FOREIGN KEY(song_id)
-            REFERENCES songs(song_id)
-            ON DELETE CASCADE
-            ON UPDATE CASCADE,
-    CONSTRAINT fk_artists
-        FOREIGN KEY(artist_id)
-            REFERENCES artists(artist_id)
-            ON DELETE CASCADE
-            ON UPDATE CASCADE)
+    songplay_id INTEGER IDENTITY(0,1) NOT NULL,
+    start_time  BIGINT NOT NULL,
+    user_id     VARCHAR NOT NULL,
+    level       VARCHAR NOT NULL,
+    song_id     VARCHAR  NOT NULL,
+    artist_id   VARCHAR NOT NULL DISTKEY,
+    session_id  VARCHAR NOT NULL,
+    location    VARCHAR,
+    user_agent  VARCHAR);
 ```
 
 Insert Query
@@ -186,7 +124,19 @@ INSERT INTO songplays (
     artist_id,
     session_id,
     location,
-    user_agent) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+    user_agent)
+    SELECT
+    se.ts AS start_time,
+    se.user_id AS user_id,
+    se.level AS level,
+    ss.artist_id AS artist_id,
+    ss.song_id AS song_id,
+    se.session_id AS session_id,
+    se.location AS location,
+    se.user_agent AS user_agent
+    FROM staging_events AS se
+    JOIN staging_songs AS ss ON (se.artist = ss.artist_name)
+    WHERE se.page='NextSong';
 ```
 
 ### Dimension Tables
@@ -196,25 +146,30 @@ INSERT INTO songplays (
 Create Query
 ```
 CREATE TABLE IF NOT EXISTS users (
-    user_id int PRIMARY KEY,
-    first_name varchar,
-    last_name varchar,
-    gender varchar,
-    level varchar)
+    user_id INTEGER,
+    first_name VARCHAR,
+    last_name VARCHAR,
+    gender VARCHAR,
+    level VARCHAR)
+diststyle all;
 ```
 
 Insert Query
 
 ```
-INSERT INTO users (
+INSERT INTO users(
     user_id,
     first_name,
     last_name,
     gender,
-    level) VALUES (%s, %s, %s, %s, %s)
-
- 	ON CONFLICT (user_id)
-    DO UPDATE SET  level=EXCLUDED.level
+    level)
+    SELECT
+    se.user_id AS user_id,
+    se.first_name AS first_name,
+    se.last_name AS last_name,
+    se.gender AS gender,
+    se.level AS level
+    FROM staging_events AS se;
 ```
 
 ##### 2- Songs
@@ -223,28 +178,29 @@ Create Query
 
 ```
 CREATE TABLE IF NOT EXISTS songs (
-    song_id varchar PRIMARY KEY,
-    title varchar,
-    artist_id varchar,
-    year int,
-    duration float)
+    song_id VARCHAR PRIMARY KEY DISTKEY,
+    title VARCHAR,
+    artist_id VARCHAR,
+    year INTEGER SORTKEY,
+    duration FLOAT);
 ```
 
 Insert Query
 
 ```
-INSERT INTO songs (
+INSERT INTO songs(
     song_id,
     title,
     artist_id,
     year,
-    duration) VALUES (%s, %s, %s, %s, %s)
-    ON CONFLICT (song_id)
-    DO UPDATE SET
-        title=EXCLUDED.title,
-        artist_id=EXCLUDED.artist_id,
-        year=EXCLUDED.year,
-        duration=EXCLUDED.duration
+    duration)
+    SELECT
+    ss.song_id AS song_id,
+    ss.title AS title,
+    ss.artist_id AS artist_id,
+    ss.year AS year,
+    ss.duration AS duration
+    FROM staging_songs AS ss;
 ```
 
 ##### 3- Artists
@@ -253,28 +209,29 @@ Create Query
 
 ```
 CREATE TABLE IF NOT EXISTS  artists (
-    artist_id varchar PRIMARY KEY,
-    name varchar,
-    location varchar,
-    latitude float,
-    longitude float)
+    artist_id VARCHAR PRIMARY KEY DISTKEY,
+    name VARCHAR,
+    location VARCHAR,
+    latitude VARCHAR,
+    longitude VARCHAR);
 ```
 
 Insert Query
 
 ```
-INSERT INTO artists (
+INSERT INTO artists(
     artist_id,
     name,
     location,
     latitude,
-    longitude) VALUES (%s, %s, %s, %s, %s)
-    ON CONFLICT (artist_id)
-    DO UPDATE SET
-        name=EXCLUDED.name,
-        location=EXCLUDED.location,
-        latitude=EXCLUDED.latitude,
-        longitude=EXCLUDED.longitude
+    longitude)
+    SELECT
+    ss.artist_id AS artist_id,
+    ss.artist_name AS name,
+    ss.artist_location AS location,
+    ss.artist_latitude AS latitude,
+    ss.artist_longitude AS longitude
+    FROM staging_songs AS ss;
 ```
 
 ##### 4- Time
@@ -283,31 +240,105 @@ Create Query
 
 ```
 CREATE TABLE IF NOT EXISTS  time (
-    id SERIAL PRIMARY KEY,
-    start_time timestamp NOT NULL,
-    hour int NOT NULL,
-    day int NOT NULL,
-    week int NOT NULL,
-    month int NOT NULL,
-    year int NOT NULL,
-    weekday int NOT NULL)
+    id INTEGER IDENTITY(0,1) PRIMARY KEY,
+    start_time timestamp NOT NULL SORTKEY,
+    hour INTEGER NOT NULL,
+    day INTEGER NOT NULL,
+    week INTEGER NOT NULL,
+    month INTEGER NOT NULL,
+    year INTEGER NOT NULL,
+    weekday INTEGER NOT NULL);
 ```
 
 Insert Query
 
 ```
-INSERT INTO time (
+INSERT INTO time(
     start_time,
     hour,
     day,
     week,
     month,
     year,
-    weekday) VALUES (%s, %s, %s, %s, %s, %s, %s)
+    weekday)
+    SELECT
+    dateadd(
+    s, convert(bigint, se.ts) / 1000, convert(datetime, '1-1-1970 00:00:00')
+    ) AS start_time,
+    EXTRACT(hour from start_time) AS hour,
+    EXTRACT(day from start_time) AS day,
+    EXTRACT(week from start_time) AS week,
+    EXTRACT(month from start_time) AS month,
+    EXTRACT(year from start_time) AS year,
+    date_part(dow, start_time) AS weekday
+    FROM staging_events AS se;
 ```
 
-## Error Convention
 
-- This error arise if you forget to pass *username*, *password* and *database_name* in `create_tables.py` and `etl.py` scripts. Please refer to [This Section](https://github.com/YoHaNoMe/sparkify-udacity#running-application).
+### Staging Tables
 
->You have to pass username and password. please refer to the documentation
+##### Staging Events
+
+Create Query
+
+```
+CREATE TABLE IF NOT EXISTS staging_events(
+    events_id INTEGER IDENTITY(0, 1) NOT NULL,
+    artist VARCHAR DISTKEY,
+    auth VARCHAR,
+    first_name VARCHAR,
+    last_name VARCHAR,
+    gender CHAR,
+    item_in_session INTEGER,
+    length VARCHAR,
+    level VARCHAR,
+    location VARCHAR,
+    method VARCHAR,
+    page VARCHAR,
+    registration VARCHAR,
+    session_id INTEGER,
+    song VARCHAR,
+    status INTEGER,
+    ts BIGINT SORTKEY,
+    user_agent  VARCHAR,
+    user_id INTEGER);
+```
+
+Insert Query
+
+```
+COPY staging_events FROM {}
+credentials 'aws_iam_role={}'
+json {}
+region {};
+""").format(LOG_DATA, ARN, LOG_JSONPATH, REGION)
+```
+
+##### Staging Songs
+
+Create Query
+
+```
+CREATE TABLE IF NOT EXISTS staging_songs(
+    id INTEGER IDENTITY(0, 1) NOT NULL,
+    num_songs INTEGER,
+    artist_id VARCHAR,
+    artist_latitude VARCHAR,
+    artist_longitude VARCHAR,
+    artist_location VARCHAR,
+    artist_name VARCHAR DISTKEY,
+    song_id VARCHAR,
+    title VARCHAR,
+    duration FLOAT SORTKEY,
+    year INTEGER);
+```
+
+Insert Query
+
+```
+COPY staging_songs FROM {}
+credentials 'aws_iam_role={}'
+json 'auto'
+region {}
+""").format(SONG_DATA, ARN, REGION)
+```

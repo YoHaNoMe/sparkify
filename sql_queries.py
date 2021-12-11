@@ -9,6 +9,7 @@ ARN = config.get('IAM_ROLE', 'ARN')
 LOG_DATA = config.get('S3', 'LOG_DATA')
 LOG_JSONPATH = config.get('S3', 'LOG_JSONPATH')
 SONG_DATA = config.get('S3', 'SONG_DATA')
+REGION = config.get('REGION', 'REGION')
 
 # DROP TABLES
 
@@ -119,15 +120,15 @@ staging_events_copy = ("""
 COPY staging_events FROM {}
 credentials 'aws_iam_role={}'
 json {}
-region 'us-east-1';
-""").format(LOG_DATA, ARN, LOG_JSONPATH)
+region {};
+""").format(LOG_DATA, ARN, LOG_JSONPATH, REGION)
 
 staging_songs_copy = ("""
 COPY staging_songs FROM {}
 credentials 'aws_iam_role={}'
 json 'auto'
-region 'us-east-1'
-""").format(SONG_DATA, ARN)
+region {}
+""").format(SONG_DATA, ARN, REGION)
 
 # FINAL TABLES
 

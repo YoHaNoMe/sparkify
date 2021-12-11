@@ -58,16 +58,14 @@ def main():
                 *config['CLUSTER'].values()))
         print("Connected Successfully....")
         print("*******************")
+        cur = conn.cursor()
+
+        load_staging_tables(cur, conn)
+        insert_tables(cur, conn)
+
+        conn.close()
     except Exception as e:
         print(e)
-
-    cur = conn.cursor()
-
-    load_staging_tables(cur, conn)
-    insert_tables(cur, conn)
-
-    conn.close()
-
 
 if __name__ == "__main__":
     main()
