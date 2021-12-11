@@ -82,7 +82,7 @@ This will install all of the required packages within the `requirements.txt` fil
 6. Upload `staging_events_jsonpath.json` in a separate bucket also.
 
 7. Fill in `dwh.cfg` fields.
-    - Please follow the instruction you will found in the file. **only replace** `<YOUR_BUCKET_NAME>` with your bucket name.
+    - Please follow the instruction you will found in the file. **only replace** `<YOUR_BUCKET_NAME>` with your bucket name. Ex: your bucket name: `test-bucket` so the `LOG_DATA` for example will be like that: `s3://test-bucket`.
     - Please make sure that `LOG_DATA` and `SONG_DATA` aren't like that: `s3://bucket_name/log-data | s3://bucket_name/song-data`. If it like that **remove** `log-data` and `song-data` part.
 
 8. Run `create_tables.py`.
