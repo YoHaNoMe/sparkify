@@ -6,53 +6,28 @@ Sparkify is a startup wants to analyze the songs they have been collecting and k
 ## Project Structure
 
 ```
-├── data  (folder containing all the json data that we will extract)
-│   ├── log_data (user logs folder)
-│   │   └── 2018
-│   │       └── 11
-│   │           ├── 2018-11-01-events.json
-│   │           └── .....
-│   └── song_data (folder containing songs and artists data)
-│       └── A
-│           ├── A
-│           │   ├── A
-│           │   │   ├── TRAAAAW128F429D538.json
-│           │   │   ├── ....
-│           │   ├── B
-│           │   │   ├── TRAABCL128F4286650.json
-│           │   │   ├── ....
-│           │   └── C
-│           │       ├── TRAACCG128F92E8A55.json
-│           │       ├── ....
-│           └── B
-│               ├── A
-│               │   ├── TRABACN128F425B784.json
-│               │   ├── ....
-│               ├── B
-│               │   ├── TRABBAM128F429D223.json
-│               │   ├── ....
-│               └── C
-│                   ├── TRABCAJ12903CDFCC2.json
-│                   ├── ....
-│
-├── etl.ipynb (Jupyter Notebook same as 'etl.py')
-│
-├── etl.py
-│
+.
 ├── create_tables.py
-│
+├── data
+│   └── data
+│       ├── log_data (user log folder)
+│       │   ├── 2018-11-01-events.json
+│       │   ├── ....
+│       │
+│       └── song_data (folder containing songs and artists data)
+│           ├── TRAAAAW128F429D538.json
+│           ├── ....
+├── dwh.cfg (config contains settings for redshift cluster)
+├── etl.py
+├── __pycache__
+│   └── sql_queries.cpython-39.pyc
 ├── README.md
-│
-├── requirements.txt
-│
-├── sql_queries.py (all the queries that we will run)
-│
-├── test.ipynb (Jupyter Notebook to test the database and the tables are created 
-│			    and to test that the data is inserted successfully)
-│
-└── tree.txt (a file containing this tree diagram with all the data)
+├── sql_queries.py
+├── staging_events_jsonpath.json
+└── tree.txt
 
-15 directories, 110 files
+5 directories, 109 files
+
 ```
 
 ## Tables
