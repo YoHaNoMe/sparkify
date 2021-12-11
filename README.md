@@ -75,13 +75,13 @@ This will install all of the required packages within the `requirements.txt` fil
     - Click Next
     - Review and Create.
 
-3. Fill in `dwh.cfg` fields.
+3. Create S3 Buckets, please refer to this [link](https://docs.aws.amazon.com/AmazonS3/latest/userguide/create-bucket-overview.html)
 
-4. Create S3 Buckets, please refer to this [link](https://docs.aws.amazon.com/AmazonS3/latest/userguide/create-bucket-overview.html)
+4. Upload `log_data` and `song_data` in _data_ folder, each one in a separate bucket.
 
-5. Upload `log_data` and `song_data` in _data_ folder, each one in a separate bucket.
+5. Upload `staging_events_jsonpath.json` in a separate bucket also.
 
-6. Upload `staging_events_jsonpath.json` in a separate bucket also.
+6. Fill in `dwh.cfg` fields.
 
 7. Run `create_tables.py`.
     - `python create_tables.py`
