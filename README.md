@@ -83,7 +83,7 @@ This will install all of the required packages within the `requirements.txt` fil
 
 7. Fill in `dwh.cfg` fields.
     - Please follow the instruction you will found in the file. **only replace** `<YOUR_BUCKET_NAME>` with your bucket name.
-    - Please make sure that `LOG_DATA` and `SONG_DATA` aren't like that: `s3://bucket_name/log-data | s3://bucket_name/song-data`. If it like that **remove** `log-data/` and `song-data/` part.
+    - Please make sure that `LOG_DATA` and `SONG_DATA` aren't like that: `s3://bucket_name/log-data | s3://bucket_name/song-data`. If it like that **remove** `log-data` and `song-data` part.
 
 8. Run `create_tables.py`.
     - `python create_tables.py`
